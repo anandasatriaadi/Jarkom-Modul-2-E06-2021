@@ -201,8 +201,139 @@
    @	  IN      A       10.32.2.4
    www IN      CNAME   mecha.franky.e06.com.
    ```
-   * Restart bind dan coba ping dari LogueTown
-   ![image26](https://user-images.githubusercontent.com/36522826/139081435-e7f42edb-e625-4ef8-9a1b-e995d953022e.png)
+   * Restart bind dan coba ping dari LogueTown  
+   ![image26](https://user-images.githubusercontent.com/36522826/139081435-e7f42edb-e625-4ef8-9a1b-e995d953022e.png)  
+
+## Nomor 7
+###	Untuk memperlancar komunikasi Luffy dan rekannya, dibuatkan subdomain melalui Water7 dengan nama general.mecha.franky.yyy.com dengan alias www.general.mecha.franky.yyy.com yang mengarah ke Skypie.
+
+### _Solusi_
+Karena kita perlu menambahkan subdomain untuk mecha.franky.yyy.com, maka pada Water7 edit */etc/bind/sunnygo/franky.e06.com* tambahkan A record dan CNAME record untuk www.general.franky.e06.com  
+  
+```
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     mecha.franky.e06.com. root.mecha.franky.e06.com. (
+      2021102401		; Serial
+      604800		; Refresh
+      86400			; Retry
+      2419200		; Expire
+      604800 )		; Negative Cache TTL
+;
+@		IN	NS		mecha.franky.e06.com.
+@		IN	A		10.32.2.4
+www		IN	CNAME	mecha.franky.e06.com.
+www.general	IN	CNAME	mecha.franky.e06.com.
+general	IN	A		10.32.2.4
+```  
+Setelah diubah, lakukan `service bind9 restart` dan coba lakukan ping dari client.  
+![image](https://user-images.githubusercontent.com/57354564/139165888-810e4e1f-25b3-4916-958c-79aa87735c29.png)  
+
+## Nomor 8
+###	Setelah itu terdapat subdomain mecha.franky.yyy.com dengan alias www.mecha.franky.yyy.com yang didelegasikan dari EniesLobby ke Water7 dengan IP menuju ke Skypie dalam folder sunnygo
+
+### _Solusi_
+Pertama, ubah config `/etc/bind/kaizoku/franky.e06.com` pada EniesLobby kemudian ubah IP A record pertama menjadi IP Skypie.
+![image](https://user-images.githubusercontent.com/57354564/139166710-ae8d12f2-033b-4c4d-bd02-2920c0b81358.png)  
+  
+Copy file `/etc/apache2/sites-available/000-default.conf` ke `/etc/apache2/sites-available/franky.e06.com.conf` dengan isi file sebagai berikut:  
+```
+<VirtualHost *:80>
+
+        ServerName franky.e06.com
+        ServerAlias www.franky.e06.com
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/franky.e06.com
+        <Directory /var/www/franky.e06.com>
+                Options +FollowSymLinks -Multiviews
+                AllowOverride All
+        </Directory>
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+</VirtualHost>
+
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noet
+```
+![image](https://user-images.githubusercontent.com/57354564/139166806-bb1c1bf4-49e0-4c6a-a9ea-10b570182012.png)  
+Kemudian tambahkan folder franky.e06.com pada /var/www/ dalam folder tersebut download file zip yang sudah disediakan dan unzip pada folder yang baru dibuat.  
+  
+Coba akses `lynx franky.206.com`
+![image](https://user-images.githubusercontent.com/57354564/139167417-785dd8c1-5828-44c4-86b9-416fccf4345a.png)
+
+
+## Nomor 9
+###	Setelah itu, Luffy juga membutuhkan agar url **www.franky.yyy.com/index.php/home** dapat menjadi menjadi **www.franky.yyy.com/home**.
+
+### _Solusi_
+Untuk dapat mengubah url awal menjadi **www.franky.yyy.com/home**. Maka perlu enable plugin rewrite dengan **a2enmod rewrite** kemudian pada folder **/var/www/franky.e06.com/** tambah file **.htaccess** dengan isi file:
+```
+RewriteEngine On
+RewriteRule ^home$ index.php/home
+```
+Test dengan melakukan lynx franky.e06.com/home
+
+![image](https://user-images.githubusercontent.com/57354564/139166930-71bb0b0e-483f-4e9d-a1a6-ea2d45c9fe20.png)
+
+## Nomor 10
+###	Setelah itu, pada subdomain **www.super.franky.yyy.com**, Luffy membutuhkan penyimpanan aset yang memiliki DocumentRoot pada **/var/www/super.franky.yyy.com**.   
+
+### _Solusi_
+Copy file `/etc/apache2/sites-available/000-default.conf` ke `/etc/apache2/sites-available/super.franky.e06.com.conf` dengan isi file sebagai berikut:
+
+```
+<VirtualHost *:80>
+
+        ServerName super.franky.e06.com
+        ServerAlias www.super.franky.e06.com
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/super.franky.e06.com
+
+</VirtualHost>
+
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noet
+```
+
+Kemudian tambahkan folder super.franky.e06.com pada /var/www/ dalam folder tersebut download file zip yang sudah disediakan dan unzip pada folder yang baru dibuat.  
+
+## Nomor 11
+###	Akan tetapi, pada folder /public, Luffy ingin hanya dapat melakukan directory listing saja. 
+
+### _Solusi_
+Pada `/etc/apache2/sites-available/super.franky.e06.com.conf` tambahkan konfigurasi dengan tag Directory sebagai berikut:
+
+```
+     <Directory /var/www/super.franky.e06.com>
+                Options +Indexes
+     </Directory>
+
+     <Directory /var/www/super.franky.e06.com/public>
+                Options +Indexes
+     </Directory>
+```
+![image](https://user-images.githubusercontent.com/57354564/139167116-b7fee4d1-a5a1-42ed-835a-d03d29803adf.png)
+Test dengan mengakses folder `lynx super.franky.e06.com/public`  
+
+![image](https://user-images.githubusercontent.com/57354564/139167162-a9ca4633-9c0e-44dd-a378-5fcb4ab177ab.png)
+
+## Nomor 12
+###	Tidak hanya itu, Luffy juga menyiapkan error file 404.html pada folder /error untuk mengganti error kode pada apache. 
+
+### _Solusi_
+Pada `/etc/apache2/sites-available/super.franky.e06.com.conf` tambahkan konfigurasi ErrorDocument sebagai berikut:
+```
+ErrorDocument 404 /error/404.html
+```
+![image](https://user-images.githubusercontent.com/57354564/139167274-9c393faf-5873-46ae-a4f4-0ce25c4fc6f5.png)
+
+Mencoba mengakses invalid url misal lynx super.franky.e06.com/loguetown  
+
+![image](https://user-images.githubusercontent.com/57354564/139167305-38c072c0-f63d-42ae-8cd6-3f1a16b4d302.png)
 
 ## Nomor 13
 ###	Luffy juga meminta Nami untuk dibuatkan konfigurasi virtual host. Virtual host ini bertujuan untuk dapat mengakses file asset www.super.franky.yyy.com/public/js menjadi www.super.franky.yyy.com/js. 
