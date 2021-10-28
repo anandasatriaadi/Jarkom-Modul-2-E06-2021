@@ -317,6 +317,7 @@ Pada `/etc/apache2/sites-available/super.franky.e06.com.conf` tambahkan konfigur
      </Directory>
 ```
 ![image](https://user-images.githubusercontent.com/57354564/139167116-b7fee4d1-a5a1-42ed-835a-d03d29803adf.png)
+
 Test dengan mengakses folder `lynx super.franky.e06.com/public`  
 
 ![image](https://user-images.githubusercontent.com/57354564/139167162-a9ca4633-9c0e-44dd-a378-5fcb4ab177ab.png)
